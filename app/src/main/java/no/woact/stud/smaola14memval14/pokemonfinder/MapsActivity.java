@@ -1,5 +1,6 @@
 package no.woact.stud.smaola14memval14.pokemonfinder;
 
+import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
@@ -9,6 +10,13 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -22,6 +30,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        downloadAndDisplayData();
+
+    }
+
+    private void downloadAndDisplayData() {
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(final Void... params) {
+                int statusCode;
+                try {
+                    HttpURLConnection connection =
+                            (HttpURLConnection) new URL("https://locations.lehmann.tech/locations").openConnection();
+                    connection.connect();
+                    statusCode = connection.getResponseCode();
+                    switch (statusCode) {
+                        case 200:
+                        case 201:
+                            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                            StringBuilder sb = new StringBuilder();
+                            String line;
+                            while ((line = br.readLine()) != null) {
+                                sb.append(line+"\n");
+                            }
+                            br.close();
+                            return sb.toString();
+                    }
+
+                } catch (IOException e) {
+                    throw new RuntimeException(e); // I'm lazy
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(final String result) {
+                super.onPostExecute(result);
+                System.out.println(result+ "WTF" + "WTF");
+            }
+        }.execute();
+
+
     }
 
 
