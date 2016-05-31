@@ -13,12 +13,14 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -38,26 +40,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void downloadAndDisplayData() {
-        new AsyncTask<Void, Void, JSONArray>() {
+        new AsyncTask<Void, Void, ArrayList<Pokemon>>() {
             @Override
-            protected JSONArray doInBackground(final Void... params) {
-                int statusCode;
+            protected ArrayList<Pokemon> doInBackground(final Void... params) {
                 try {
-                    HttpURLConnection connection =
-                            (HttpURLConnection) new URL("https://locations.lehmann.tech/locations").openConnection();
+                    HttpURLConnection connection = (HttpURLConnection) new URL("https://locations.lehmann.tech/locations").openConnection();
                     connection.connect();
-                    statusCode = connection.getResponseCode();
+                    int statusCode = connection.getResponseCode();
+
                     switch (statusCode) {
                         case 200:
                         case 201:
-                            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                            StringBuilder sb = new StringBuilder();
-                            String line;
-                            while ((line = br.readLine()) != null) {
-                                sb.append(line+"\n");
-                            }
-                            br.close();
-                            return new JSONArray(sb.toString());
+                            String jsonString = connectionInputToString(connection);
+                            return jsonArrayToPokemonList(new JSONArray(jsonString));
                     }
 
                 } catch (IOException e) {
@@ -69,19 +64,44 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
             @Override
-            protected void onPostExecute(final JSONArray result) {
-                super.onPostExecute(result);
-                for (int i = 0; i < result.length(); i++) {
-                    try {
-                        System.out.println(result.get(i));
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+            protected void onPostExecute(final ArrayList<Pokemon> pokemonList) {
+                super.onPostExecute(pokemonList);
+                if (pokemonList == null) {
+                    System.out.println("Something went wrong");
+                }
+                for (Pokemon pokemon : pokemonList) {
+                    System.out.println(pokemon.toString());
                 }
             }
         }.execute();
+    }
 
+    private String connectionInputToString(HttpURLConnection connection) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        StringBuilder sb = new StringBuilder();
+        String line;
 
+        while ((line = br.readLine()) != null) {
+            sb.append(line+"\n");
+        }
+        br.close();
+
+        return sb.toString();
+    }
+
+    public ArrayList<Pokemon> jsonArrayToPokemonList(JSONArray jsonArray) throws JSONException {
+        ArrayList<Pokemon> pokemonList = new ArrayList<>();
+
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject pokemon = jsonArray.getJSONObject(i);
+            String id = pokemon.getString("_id");
+            String name = pokemon.getString("name");
+            String hint = pokemon.getString("hint");
+            LatLng lat = new LatLng(pokemon.getDouble("lat"), pokemon.getDouble("lng"));
+            pokemonList.add(new Pokemon(id, name, hint, lat));
+        }
+
+        return pokemonList;
     }
 
 
