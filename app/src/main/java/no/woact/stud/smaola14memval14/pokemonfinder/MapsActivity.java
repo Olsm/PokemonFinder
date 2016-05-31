@@ -11,6 +11,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -35,9 +38,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void downloadAndDisplayData() {
-        new AsyncTask<Void, Void, String>() {
+        new AsyncTask<Void, Void, JSONArray>() {
             @Override
-            protected String doInBackground(final Void... params) {
+            protected JSONArray doInBackground(final Void... params) {
                 int statusCode;
                 try {
                     HttpURLConnection connection =
@@ -54,19 +57,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 sb.append(line+"\n");
                             }
                             br.close();
-                            return sb.toString();
+                            return new JSONArray(sb.toString());
                     }
 
                 } catch (IOException e) {
                     throw new RuntimeException(e); // I'm lazy
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
                 return null;
             }
 
             @Override
-            protected void onPostExecute(final String result) {
+            protected void onPostExecute(final JSONArray result) {
                 super.onPostExecute(result);
-                System.out.println(result+ "WTF" + "WTF");
+                for (int i = 0; i < result.length(); i++) {
+                    try {
+                        System.out.println(result.get(i));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }.execute();
 
