@@ -26,6 +26,7 @@ import java.util.ArrayList;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private DbHandler dbHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +36,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        dbHandler = new DbHandler(this);
+
         downloadAndDisplayData();
     }
 
@@ -101,7 +104,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void updatePokemonMapData(ArrayList<Pokemon> pokemonList) {
         for (Pokemon pokemon : pokemonList) {
             float color = BitmapDescriptorFactory.HUE_RED;
-            if (pokemon.getCaptured()) color = BitmapDescriptorFactory.HUE_GREEN;
+            if (dbHandler.pokemonInDb(pokemon.getId())) color = BitmapDescriptorFactory.HUE_GREEN;
             mMap.addMarker(new MarkerOptions().position(pokemon.getLocation())
                     .title(pokemon.getName()).snippet(pokemon.getHint())
                     .icon(BitmapDescriptorFactory.defaultMarker(color)));

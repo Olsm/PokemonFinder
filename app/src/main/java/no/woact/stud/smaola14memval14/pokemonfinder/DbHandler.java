@@ -27,12 +27,12 @@ public class DbHandler extends SQLiteOpenHelper {
     public static final String KEY_LATITUDE = "LATITUDE";
     public static final String KEY_LONGITUDE = "LONGITUDE";
 
-
+    private SQLiteDatabase db;
 
 
     public DbHandler(Context context){
         super(context, DATABASE_NAME, null, 1);
-        SQLiteDatabase db = this.getWritableDatabase();
+        db =  this.getWritableDatabase();
     }
 
     @Override
@@ -48,27 +48,21 @@ public class DbHandler extends SQLiteOpenHelper {
     }
 
     //Inserts results to table
-    public void addResult(String pokemonId, String name, String hint,
-                          LatLng location, boolean captured){
-        SQLiteDatabase db = this.getWritableDatabase();
-
+    public void addPokemon(Pokemon pokemon){
         ContentValues values = new ContentValues();
-        values.put(KEY_POKEMON_ID, pokemonId);
-        values.put(KEY_NAME, name);
-        values.put(KEY_HINT, hint);
-        values.put(KEY_LATITUDE, location.latitude);
-        values.put(KEY_LONGITUDE, location.longitude);
-        values.put(KEY_CAPTURED, captured);
-
+        values.put(KEY_POKEMON_ID, pokemon.getId());
+        values.put(KEY_NAME, pokemon.getName());
+        values.put(KEY_HINT, pokemon.getHint());
+        values.put(KEY_LATITUDE, pokemon.getLocation().latitude);
+        values.put(KEY_LONGITUDE, pokemon.getLocation().longitude);
+        values.put(KEY_CAPTURED, pokemon.getCaptured());
         db.insert(TABLE_NAME, null, values);
-        db.close();
     }
 
-    public List<Pokemon> getPokemonsFromDb(){
-        List<Pokemon> resultPokemons = new ArrayList<>();
+    public ArrayList<Pokemon> getPokemonsFromDb(){
+        ArrayList<Pokemon> resultPokemons = new ArrayList<>();
         String query = ("SELECT * FROM " + TABLE_NAME);
 
-        SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(query, null);
 
         if(cursor.moveToFirst()){
@@ -80,6 +74,12 @@ public class DbHandler extends SQLiteOpenHelper {
         cursor.close();
         return resultPokemons;
 
+    }
+
+    public boolean pokemonInDb(String pokemonId) {
+        String[] args={pokemonId};
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE "+KEY_POKEMON_ID + " = ?", args);
+        return(cursor.getCount() == 1);
     }
 
 }
