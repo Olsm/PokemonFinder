@@ -8,6 +8,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -21,7 +22,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -36,7 +36,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         downloadAndDisplayData();
-
     }
 
     private void downloadAndDisplayData() {
@@ -66,12 +65,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             protected void onPostExecute(final ArrayList<Pokemon> pokemonList) {
                 super.onPostExecute(pokemonList);
-                if (pokemonList == null) {
-                    System.out.println("Something went wrong");
-                }
-                for (Pokemon pokemon : pokemonList) {
-                    System.out.println(pokemon.toString());
-                }
+                updatePokemonMapData(pokemonList);
             }
         }.execute();
     }
@@ -104,6 +98,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return pokemonList;
     }
 
+    public void updatePokemonMapData(ArrayList<Pokemon> pokemonList) {
+        for (Pokemon pokemon : pokemonList) {
+            float color = BitmapDescriptorFactory.HUE_RED;
+            if (pokemon.getCaptured()) color = BitmapDescriptorFactory.HUE_GREEN;
+            mMap.addMarker(new MarkerOptions().position(pokemon.getLocation())
+                    .title(pokemon.getName()).snippet(pokemon.getHint())
+                    .icon(BitmapDescriptorFactory.defaultMarker(color)));
+        }
+        Pokemon pLast = pokemonList.get(pokemonList.size()-1);
+        mMap.animateCamera( CameraUpdateFactory.newLatLngZoom(pLast.getLocation(), 12.0f));
+    }
+
 
     /**
      * Manipulates the map once available.
@@ -118,9 +124,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
+        /* Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney)); */
     }
 }
