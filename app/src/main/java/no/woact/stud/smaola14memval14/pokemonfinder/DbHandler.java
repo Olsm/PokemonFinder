@@ -77,7 +77,7 @@ public class DbHandler extends SQLiteOpenHelper {
                 resultPokemons.add(result);
             }while (cursor.moveToNext());
         }
-        
+        cursor.close();
         return resultPokemons;
 
     }
