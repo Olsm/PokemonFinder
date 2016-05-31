@@ -1,20 +1,20 @@
 package no.woact.stud.smaola14memval14.pokemonfinder;
 
+import com.google.android.gms.maps.model.LatLng;
+
 public class Pokemon {
     private String id;
     private String name;
     private String hint;
-    private double longitude;
-    private double latitude;
+    private LatLng location;
     private boolean captured;
 
     //Constructor
-    public Pokemon(String id, String name, String hint, double longitude, double latitude){
+    public Pokemon(String id, String name, String hint, LatLng location){
         this.id = id;
         this.name = name;
         this.hint = hint;
-        this.longitude = longitude;
-        this.latitude = latitude;
+        this.location = location;
         this.captured = false;
     }
 
@@ -31,11 +31,8 @@ public class Pokemon {
         return this.hint;
     }
 
-    public double getLongitude(){
-        return this.longitude;
-    }
-    public double getLatitude(){
-        return this.latitude;
+    public LatLng getLocation(){
+        return this.location;
     }
 
     public boolean getCaptured(){
