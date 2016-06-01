@@ -3,6 +3,8 @@ package no.woact.stud.smaola14memval14.pokemonfinder;
 import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -58,7 +60,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
 
                 } catch (IOException | JSONException e) {
-                    e.printStackTrace();
+                    messageBox("doInBackground", "Could not search for pokemons. Please make sure you have internet and restart the ap");
                 }
                 return null;
             }
@@ -131,7 +133,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
         } catch (IOException | JSONException e) {
-            e.printStackTrace();
+            messageBox("findPokemon", "Could not search for pokemon. Please make sure you have internet and restart the ap");
         }
         return pokemon;
     }
@@ -141,4 +143,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
     }
 
+    // Code below from http://stackoverflow.com/a/18143773
+    //*********************************************************
+    //generic dialog, takes in the method name and error message
+    //*********************************************************
+    private void messageBox(String method, String message)
+    {
+        Log.d("EXCEPTION: " + method,  message);
+
+        AlertDialog.Builder messageBox = new AlertDialog.Builder(this);
+        messageBox.setTitle(method);
+        messageBox.setMessage(message);
+        messageBox.setCancelable(false);
+        messageBox.setNeutralButton("OK", null);
+        messageBox.show();
+    }
 }
