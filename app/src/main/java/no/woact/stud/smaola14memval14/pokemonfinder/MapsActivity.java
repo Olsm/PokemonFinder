@@ -19,11 +19,22 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -60,7 +71,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
 
                 } catch (IOException | JSONException e) {
-                    messageBox("doInBackground", "Could not search for pokemons. Please make sure you have internet and restart the ap");
+                    messageBox("doInBackground", "Could not search for pokemons. Please make sure you have internet and restart the app");
                 }
                 return null;
             }
@@ -83,7 +94,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         br.close();
 
-        return sb.toString();
+        String string = sb.toString();
+        if (string.charAt(0) != '[') {
+            string = "[" + string + "]";
+        }
+
+        return string;
     }
 
     public ArrayList<Pokemon> jsonArrayToPokemonList(JSONArray jsonArray) throws JSONException {
@@ -116,24 +132,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public Pokemon findPokemon(String pokemonId) {
         Pokemon pokemon = null;
         try {
-            HttpURLConnection connection = (HttpURLConnection) new URL("https://locations.lehmann.tech/pokemon/" + pokemonId).openConnection();
-            connection.setRequestProperty("X-Token", "token");
-            connection.connect();
-            int statusCode = connection.getResponseCode();
 
-            switch (statusCode) {
-                case 200:
-                case 201:
-                    String jsonString = connectionInputToString(connection);
-                    ArrayList<Pokemon> pokemonList = jsonArrayToPokemonList(new JSONArray(jsonString));
-                    if (pokemonList.size() == 1) {
-                        pokemon = pokemonList.get(0);
-                        dbHandler.addPokemon(pokemon);
-                    }
+            // Fix SSL exception, from http://stackoverflow.com/a/24501156
+            /* Start of Fix */
+            TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() { return null; }
+                public void checkClientTrusted(X509Certificate[] certs, String authType) { }
+                public void checkServerTrusted(X509Certificate[] certs, String authType) { }
+
+            } };
+
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+            // Create all-trusting host name verifier
+            HostnameVerifier allHostsValid = new HostnameVerifier() {
+                public boolean verify(String hostname, SSLSession session) { return true; }
+            };
+            // Install the all-trusting host verifier
+            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+            /* End of the fix*/
+
+            HttpsURLConnection connection = (HttpsURLConnection) new URL("https://locations.lehmann.tech/pokemon/" + pokemonId).openConnection();
+            connection.setRequestProperty("X-Token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.InN1Y2hQb2tlbW9uSHVudGVycyI.KR0umr4FhH9AWG9DqASSqnT68MkTnfkKYyW0hxyCTFM");
+            String jsonString = connectionInputToString(connection);
+            System.out.println(jsonString);
+            ArrayList<Pokemon> pokemonList = jsonArrayToPokemonList(new JSONArray(jsonString));
+            if (pokemonList.size() == 1) {
+                pokemon = pokemonList.get(0);
+                dbHandler.addPokemon(pokemon);
             }
-
         } catch (IOException | JSONException e) {
             messageBox("findPokemon", "Could not search for pokemon. Please make sure you have internet and restart the ap");
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            e.printStackTrace();
         }
         return pokemon;
     }
@@ -150,6 +183,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void messageBox(String method, String message)
     {
         Log.d("EXCEPTION: " + method,  message);
+
+        System.out.println(message);
 
         AlertDialog.Builder messageBox = new AlertDialog.Builder(this);
         messageBox.setTitle(method);
