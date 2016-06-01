@@ -110,9 +110,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             String id = pokemon.getString("_id");
             String name = pokemon.getString("name");
             String hint = "", image = "";
+            LatLng lat = new LatLng(0, 0);
             if (pokemon.has("hint")) hint = pokemon.getString("hint");
             if (pokemon.has("image")) image = pokemon.getString("image");
-            LatLng lat = new LatLng(pokemon.getDouble("lat"), pokemon.getDouble("lng"));
+            if (pokemon.has("lat")) lat = new LatLng(pokemon.getDouble("lat"), pokemon.getDouble("lng"));
             pokemonList.add(new Pokemon(id, name, hint, image, lat));
         }
 
@@ -133,30 +134,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public Pokemon findPokemon(String pokemonId) {
         Pokemon pokemon = null;
-        try {
+        HttpsURLConnection connection = null;
 
-            // Fix SSL exception, from http://stackoverflow.com/a/24501156
+        // Fix SSL exception, from http://stackoverflow.com/a/24501156
             /* Start of Fix */
-            TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-                public java.security.cert.X509Certificate[] getAcceptedIssuers() { return null; }
-                public void checkClientTrusted(X509Certificate[] certs, String authType) { }
-                public void checkServerTrusted(X509Certificate[] certs, String authType) { }
+        TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
 
-            } };
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            }
 
-            SSLContext sc = SSLContext.getInstance("SSL");
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+
+        }};
+
+        SSLContext sc = null;
+        try {
+            sc = SSLContext.getInstance("SSL");
             sc.init(null, trustAllCerts, new java.security.SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            e.printStackTrace();
+        }
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 
-            // Create all-trusting host name verifier
-            HostnameVerifier allHostsValid = new HostnameVerifier() {
-                public boolean verify(String hostname, SSLSession session) { return true; }
-            };
-            // Install the all-trusting host verifier
-            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+        // Create all-trusting host name verifier
+        HostnameVerifier allHostsValid = new HostnameVerifier() {
+            public boolean verify(String hostname, SSLSession session) {
+                return true;
+            }
+        };
+        // Install the all-trusting host verifier
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
             /* End of the fix*/
 
-            HttpsURLConnection connection = (HttpsURLConnection) new URL("https://locations.lehmann.tech/pokemon/" + pokemonId).openConnection();
+        try {
+            connection = (HttpsURLConnection) new URL("https://locations.lehmann.tech/pokemon/" + pokemonId).openConnection();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
             connection.setRequestProperty("X-Token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.InN1Y2hQb2tlbW9uSHVudGVycyI.KR0umr4FhH9AWG9DqASSqnT68MkTnfkKYyW0hxyCTFM");
             String jsonString = connectionInputToString(connection);
             System.out.println(jsonString);
@@ -166,9 +186,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 dbHandler.addPokemon(pokemon);
             }
         } catch (IOException | JSONException e) {
-            messageBox("findPokemon", "Could not search for pokemon. Please make sure you have internet and restart the ap");
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            e.printStackTrace();
+            int statusCode = 0;
+            try {
+                statusCode = connection.getResponseCode();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            if (statusCode != 420)
+                messageBox("findPokemon", "Could not search for pokemon. Please make sure you have internet and restart the app");
         }
         return pokemon;
     }
