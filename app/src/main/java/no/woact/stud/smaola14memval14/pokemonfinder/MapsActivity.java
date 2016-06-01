@@ -124,7 +124,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             String hint = "", image = "";
             LatLng lat = new LatLng(0, 0);
             if (pokemon.has("hint")) hint = pokemon.getString("hint");
-            if (pokemon.has("image")) image = pokemon.getString("image");
+            if (pokemon.has("imageUrl")) image = pokemon.getString("imageUrl");
             if (pokemon.has("lat")) lat = new LatLng(pokemon.getDouble("lat"), pokemon.getDouble("lng"));
             pokemonList.add(new Pokemon(id, name, hint, image, lat));
         }
