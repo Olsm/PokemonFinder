@@ -46,6 +46,12 @@ public class Pokemon {
 
     @Override
     public String toString() {
-        return "Pokemon: " + this.getName();
+        return "Pokemon{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", hint='" + hint + '\'' +
+                ", location=" + location +
+                ", captured=" + captured +
+                '}';
     }
 }
