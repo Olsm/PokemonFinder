@@ -37,7 +37,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".PokemonOverview"></activity>
+        <activity android:name=".PokemonOverview"
+            android:label="@string/title_pokemon_overview"></activity>
     </application>
 
 </manifest>
