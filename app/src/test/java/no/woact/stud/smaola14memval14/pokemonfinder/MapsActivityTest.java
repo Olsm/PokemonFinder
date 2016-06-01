@@ -29,13 +29,13 @@ public class MapsActivityTest {
         Pokemon pokemon2 = pokemonList.get(1);
 
         assertEquals(2, pokemonList.size());
-        assertEquals(new Pokemon("5735a3376d4c35dab3946e06", "Charmander", "Watch out for flambeed dishes", new LatLng(59.9116586,10.7596282)), pokemon1);
-        assertEquals(new Pokemon("5735a3dc6d4c35dab3946e07", "Mew", "No trespassing! But maybe just a little", new LatLng(59.9190987,10.7395646)), pokemon2);
+        assertEquals(new Pokemon("5735a3376d4c35dab3946e06", "Charmander", "Watch out for flambeed dishes", "", new LatLng(59.9116586,10.7596282)), pokemon1);
+        assertEquals(new Pokemon("5735a3dc6d4c35dab3946e07", "Mew", "No trespassing! But maybe just a little", "", new LatLng(59.9190987,10.7395646)), pokemon2);
     }
 
     @Test
     public void testFindPokemon() {
-        Pokemon pokemon = new Pokemon("s8f9jwewe89fhalifnln39", "Pikachu", "Watch out for flambeed dishes", new LatLng(59.9116586, 10.7596282));
+        Pokemon pokemon = new Pokemon("s8f9jwewe89fhalifnln39", "Pikachu", "Watch out for flambeed dishes", "", new LatLng(59.9116586, 10.7596282));
 
         assertNull(mapsActivity.findPokemon("test"));
         assertEquals(mapsActivity.findPokemon(pokemon.getId()), pokemon);
