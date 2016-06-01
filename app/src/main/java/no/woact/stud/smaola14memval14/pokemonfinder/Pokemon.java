@@ -54,4 +54,9 @@ public class Pokemon {
                 ", captured=" + captured +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object other) {
+        return this.toString().equals(other.toString());
+    }
 }
