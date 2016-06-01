@@ -1,10 +1,12 @@
 package no.woact.stud.smaola14memval14.pokemonfinder;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.View;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -50,8 +52,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         dbHandler = new DbHandler(this);
-
         downloadAndDisplayData();
+    }
+
+    public void switchToOverview(View v){
+        Intent intent = new Intent(this, PokemonOverview.class);
+        startActivity(intent);
     }
 
     private void downloadAndDisplayData() {
