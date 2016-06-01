@@ -2,6 +2,7 @@ package no.woact.stud.smaola14memval14.pokemonfinder;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.StrictMode;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -47,6 +48,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -59,6 +64,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Intent intent = new Intent(this, PokemonOverview.class);
         startActivity(intent);
     }
+
 
     private void downloadAndDisplayData() {
         new AsyncTask<Void, Void, ArrayList<Pokemon>>() {
@@ -184,12 +190,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         try {
             connection.setRequestProperty("X-Token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.InN1Y2hQb2tlbW9uSHVudGVycyI.KR0umr4FhH9AWG9DqASSqnT68MkTnfkKYyW0hxyCTFM");
+
             String jsonString = connectionInputToString(connection);
             System.out.println(jsonString);
             ArrayList<Pokemon> pokemonList = jsonArrayToPokemonList(new JSONArray(jsonString));
-            if (pokemonList.size() == 1) {
+            if (pokemonList.size() == 1 ) {
                 pokemon = pokemonList.get(0);
-                dbHandler.addPokemon(pokemon);
+                if(!dbHandler.getPokemonsFromDb().contains(pokemon))
+                    dbHandler.addPokemon(pokemon);
             }
         } catch (IOException | JSONException e) {
             int statusCode = 0;
