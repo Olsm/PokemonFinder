@@ -6,14 +6,16 @@ public class Pokemon {
     private String id;
     private String name;
     private String hint;
+    private String image;
     private LatLng location;
     private boolean captured;
 
     //Constructor
-    public Pokemon(String id, String name, String hint, LatLng location){
+    public Pokemon(String id, String name, String hint, String image,  LatLng location){
         this.id = id;
         this.name = name;
         this.hint = hint;
+        this.image = image;
         this.location = location;
         this.captured = false;
     }
@@ -22,6 +24,10 @@ public class Pokemon {
 
     public String getId(){
         return this.id;
+    }
+
+    public String getImage() {
+        return this.image;
     }
     public String getName(){
         return this.name;
@@ -52,7 +58,7 @@ public class Pokemon {
                 ", hint='" + hint + '\'' +
                 ", location=" + location +
                 ", captured=" + captured +
-                '}';
+                " image="   + image + '}';
     }
 
     @Override
