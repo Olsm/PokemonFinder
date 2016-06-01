@@ -57,9 +57,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             return jsonArrayToPokemonList(new JSONArray(jsonString));
                     }
 
-                } catch (IOException e) {
-                    throw new RuntimeException(e); // I'm lazy
-                } catch (JSONException e) {
+                } catch (IOException | JSONException e) {
                     e.printStackTrace();
                 }
                 return null;
@@ -113,23 +111,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.animateCamera( CameraUpdateFactory.newLatLngZoom(pLast.getLocation(), 12.0f));
     }
 
+    public Pokemon findPokemon(String pokemonId) {
+        Pokemon pokemon = null;
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL("https://locations.lehmann.tech/pokemon/" + pokemonId).openConnection();
+            connection.setRequestProperty("X-Token", "token");
+            connection.connect();
+            int statusCode = connection.getResponseCode();
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
+            switch (statusCode) {
+                case 200:
+                case 201:
+                    String jsonString = connectionInputToString(connection);
+                    ArrayList<Pokemon> pokemonList = jsonArrayToPokemonList(new JSONArray(jsonString));
+                    if (pokemonList.size() == 1) {
+                        pokemon = pokemonList.get(0);
+                        dbHandler.addPokemon(pokemon);
+                    }
+            }
+
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
+        return pokemon;
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        /* Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney)); */
     }
+
 }
