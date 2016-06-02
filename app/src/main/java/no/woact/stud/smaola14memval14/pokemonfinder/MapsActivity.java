@@ -165,7 +165,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             String id = pokemon.getString("_id");
             String name = pokemon.getString("name");
             String hint = "", image = "";
-            LatLng lat = new LatLng(0, 0);
+            LatLng lat = null;
             if (pokemon.has("hint")) hint = pokemon.getString("hint");
             if (pokemon.has("imageUrl")) image = pokemon.getString("imageUrl");
             if (pokemon.has("lat")) lat = new LatLng(pokemon.getDouble("lat"), pokemon.getDouble("lng"));
@@ -183,11 +183,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Pokemon pokemon = pokemonList.get(i);
 
             if (pokemonIdList.contains(pokemon.getId())) {
-                Marker marker = markerList.get(i);
+                Marker marker = markerList.get(pokemonIdList.indexOf(pokemon.getId()));
                 marker.setIcon(BitmapDescriptorFactory.defaultMarker(green));
             }
 
-            else {
+            else if (pokemon.getLocation() != null) {
                 float color = red;
                 if (dbHandler.pokemonInDb(pokemon.getId())) color = green;
 
