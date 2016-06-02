@@ -31,13 +31,6 @@ public class PokemonOverview extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pokemon_overview);
-
-        /*imgid.add(generateImage("http://vignette4.wikia.nocookie.net/pokemon/images/5/5f/025Pikachu_OS_anime_11.png/revision/latest?cb=20150717063951"));
-        itemname.add("JAMIACABOY");
-
-        CustomListAdapter cAdapter = new CustomListAdapter(this, itemname, imgid );
-        listViewPokemons = (ListView) findViewById(R.id.listPokemons);
-        listViewPokemons.setAdapter(cAdapter);*/
         db = new DbHandler(this);
 
         collectImages();
@@ -81,9 +74,9 @@ public class PokemonOverview extends AppCompatActivity {
         try {
             return BitmapFactory.decodeStream((InputStream)new URL(imageUrl).getContent());
         } catch (MalformedURLException m) {
-            m.printStackTrace();
+            new Utils(this).messageBox("URL failure", "Failed to parse URL.");
         } catch (IOException e) {
-            e.printStackTrace();
+            new Utils(this).messageBox("Image failure", "Failed getting image. Check connection");
         }
         return null;
 
