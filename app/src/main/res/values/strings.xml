@@ -2,5 +2,13 @@
     <string name="app_name">PokemonFinder</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_pokemon_overview">List of Pokémon</string>
+    <string name="pokemon_title_status_fail">Failed!</string>
+    <string name="pokemon_title_status_success">Success!</string>
+    <string name="pokemon_message_status_fail">The pokemon id you entered was not found.</string>
+    <string name="pokemon_message_status_success">You successfully catched </string>
+
+
+
+
 
 </resources>
