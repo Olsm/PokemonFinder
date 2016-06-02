@@ -1,13 +1,17 @@
 package no.woact.stud.smaola14memval14.pokemonfinder;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.StrictMode;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -43,6 +47,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
     private DbHandler dbHandler;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +99,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 updatePokemonMapData(pokemonList);
             }
         }.execute();
+    }
+
+    public void catchPokemonDialog(View v){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Find Pokemon!");
+
+        final EditText pokemonInput = new EditText(this);
+
+        pokemonInput.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(pokemonInput);
+
+        builder.setPositiveButton("Find", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String pokemonId = "";
+
+                pokemonId = pokemonInput.getText().toString();
+                Pokemon pokemon = findPokemon(pokemonId);
+                if(pokemon != null)
+                    messageBox(getString(R.string.pokemon_title_status_success), getString(R.string.pokemon_message_status_success) + pokemon.getName());
+                else
+                    messageBox(getString(R.string.pokemon_title_status_fail), getString(R.string.pokemon_message_status_fail));
+
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
 
     private String connectionInputToString(HttpURLConnection connection) throws IOException {
@@ -223,9 +262,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //*********************************************************
     private void messageBox(String method, String message)
     {
-        Log.d("EXCEPTION: " + method,  message);
-
-        System.out.println(message);
 
         AlertDialog.Builder messageBox = new AlertDialog.Builder(this);
         messageBox.setTitle(method);
