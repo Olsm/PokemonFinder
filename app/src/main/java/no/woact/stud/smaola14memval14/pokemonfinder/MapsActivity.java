@@ -1,6 +1,5 @@
 package no.woact.stud.smaola14memval14.pokemonfinder;
 
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -9,7 +8,6 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
@@ -19,6 +17,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
@@ -26,7 +25,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -47,6 +45,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
     private DbHandler dbHandler;
+    ArrayList<Marker> markerList;
 
 
     @Override
@@ -62,6 +61,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         dbHandler = new DbHandler(this);
+        markerList = new ArrayList<>();
         downloadAndDisplayData();
     }
 
@@ -168,19 +168,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             pokemonList.add(new Pokemon(id, name, hint, image, lat));
         }
 
+        pokemonList.add(new Pokemon("57348c569295781100ae8906", "Pikachu", "Such Test", "", new LatLng(59.91183658, 10.76162338)));
+
         return pokemonList;
     }
 
     public void updatePokemonMapData(ArrayList<Pokemon> pokemonList) {
+        float green = BitmapDescriptorFactory.HUE_GREEN;
+        float red = BitmapDescriptorFactory.HUE_RED;
+
         for (Pokemon pokemon : pokemonList) {
-            float color = BitmapDescriptorFactory.HUE_RED;
-            if (dbHandler.pokemonInDb(pokemon.getId())) color = BitmapDescriptorFactory.HUE_GREEN;
-            mMap.addMarker(new MarkerOptions().position(pokemon.getLocation())
-                    .title(pokemon.getName()).snippet(pokemon.getHint())
-                    .icon(BitmapDescriptorFactory.defaultMarker(color)));
+            boolean markerExists = false;
+
+            for(Marker marker : markerList) {
+                if (marker.getPosition() == pokemon.getLocation()) {
+                    markerExists = true;
+                    marker.setIcon(BitmapDescriptorFactory.defaultMarker(green));
+                }
+            }
+
+            if (!markerExists) {
+                float color = red;
+                if (dbHandler.pokemonInDb(pokemon.getId())) color = green;
+                markerList.add(mMap.addMarker(new MarkerOptions().position(pokemon.getLocation())
+                        .title(pokemon.getName()).snippet(pokemon.getHint())
+                        .icon(BitmapDescriptorFactory.defaultMarker(color))));
+
+                mMap.animateCamera( CameraUpdateFactory.newLatLngZoom(pokemon.getLocation(), 12.0f));
+            }
         }
-        Pokemon pLast = pokemonList.get(pokemonList.size()-1);
-        mMap.animateCamera( CameraUpdateFactory.newLatLngZoom(pLast.getLocation(), 12.0f));
     }
 
     public Pokemon findPokemon(String pokemonId) {
@@ -235,8 +251,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             ArrayList<Pokemon> pokemonList = jsonArrayToPokemonList(new JSONArray(jsonString));
             if (pokemonList.size() == 1 ) {
                 pokemon = pokemonList.get(0);
-                if(!dbHandler.getPokemonsFromDb().contains(pokemon))
+                if(!dbHandler.getPokemonsFromDb().contains(pokemon)) {
                     dbHandler.addPokemon(pokemon);
+                    updatePokemonMapData(pokemonList);
+                }
             }
         } catch (IOException | JSONException e) {
             int statusCode = 0;
