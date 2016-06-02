@@ -30,6 +30,8 @@ public class DbHandler extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, 1);
         db =  this.getWritableDatabase();
     }
+    
+
     public ArrayList<Pokemon> getPokemonsFromDb(){
         ArrayList<Pokemon> resultPokemons = new ArrayList<>();
         String query = ("SELECT * FROM " + TABLE_NAME);
@@ -38,7 +40,7 @@ public class DbHandler extends SQLiteOpenHelper {
 
         if(cursor.moveToFirst()){
             do{
-                Pokemon result = new Pokemon(cursor.getString(1),cursor.getString(2),"" ,cursor.getString(3) ,new LatLng(0.0, 0.0));
+                Pokemon result = new Pokemon(cursor.getString(1),cursor.getString(2),"" ,cursor.getString(3) ,null);
                 resultPokemons.add(result);
             }while (cursor.moveToNext());
         }
