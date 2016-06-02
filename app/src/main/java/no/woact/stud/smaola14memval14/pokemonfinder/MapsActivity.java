@@ -54,6 +54,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        // TODO: Remove this!!!
         if (android.os.Build.VERSION.SDK_INT > 9) {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
@@ -127,11 +128,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String pokemonId = "";
 
                 pokemonId = pokemonInput.getText().toString();
-                Pokemon pokemon = findPokemon(pokemonId);
-                if(pokemon != null)
-                    messageBox(getString(R.string.pokemon_title_status_success), getString(R.string.pokemon_message_status_success) + pokemon.getName());
-                else
-                    messageBox(getString(R.string.pokemon_title_status_fail), getString(R.string.pokemon_message_status_fail));
+                findPokemon(pokemonId);
 
             }
         });
@@ -208,40 +205,58 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    public Pokemon findPokemon(String pokemonId) {
-        boolean problemOccurred = false;
-        HttpsURLConnection connection = null;
-        Pokemon pokemon = null;
+    public void findPokemon(final String pokemonId) {
+        new AsyncTask<Void, Void, ArrayList<Pokemon>>() {
+            @Override
+            protected ArrayList<Pokemon> doInBackground(final Void... params) {
+                boolean problemOccurred = false;
+                HttpsURLConnection connection = null;
+                ArrayList<Pokemon> pokemonList = null;
 
-        try {
-            connection = (HttpsURLConnection) new URL("https://locations.lehmann.tech/pokemon/" + pokemonId).openConnection();
-            connection.setRequestProperty("X-Token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.InN1Y2hQb2tlbW9uSHVudGVycyI.KR0umr4FhH9AWG9DqASSqnT68MkTnfkKYyW0hxyCTFM");
-        } catch (IOException e) {
-            problemOccurred = true;
-        }
-
-        try {
-            String jsonString = connectionInputToString(connection);
-            ArrayList<Pokemon> pokemonList = jsonArrayToPokemonList(new JSONArray(jsonString));
-            if (!pokemonList.isEmpty()) {
-                pokemon = pokemonList.get(0);
-                if(!dbHandler.getPokemonsFromDb().contains(pokemon)) {
-                    dbHandler.addPokemon(pokemon);
-                    updatePokemonMapData(pokemonList);
+                try {
+                    connection = (HttpsURLConnection) new URL("https://locations.lehmann.tech/pokemon/" + pokemonId).openConnection();
+                    connection.setRequestProperty("X-Token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.InN1Y2hQb2tlbW9uSHVudGVycyI.KR0umr4FhH9AWG9DqASSqnT68MkTnfkKYyW0hxyCTFM");
+                } catch (IOException e) {
+                    problemOccurred = true;
                 }
+
+                try {
+                    String jsonString = connectionInputToString(connection);
+                    pokemonList = jsonArrayToPokemonList(new JSONArray(jsonString));
+                    if (!pokemonList.isEmpty()) {
+                        Pokemon pokemon = pokemonList.get(0);
+                        if (!dbHandler.getPokemonsFromDb().contains(pokemon)) {
+                            dbHandler.addPokemon(pokemon);
+                            return pokemonList;
+                        }
+                    }
+
+                } catch (IOException | JSONException e) {
+                    int statusCode;
+                    try {statusCode = connection.getResponseCode();}
+                    catch (IOException e1) {statusCode = 0;}
+                    if (statusCode != 420) problemOccurred = true;
+                }
+
+                if (problemOccurred)
+                    messageBox("findPokemon", "Could not search for pokemon. Please make sure you have internet and restart the app");
+
+                return pokemonList;
             }
 
-        } catch (IOException | JSONException e) {
-            int statusCode;
-            try {statusCode = connection.getResponseCode();}
-            catch (IOException e1) {statusCode = 0;}
-            if (statusCode != 420) problemOccurred = true;
-        }
+            @Override
+            protected void onPostExecute(final ArrayList<Pokemon> pokemonList) {
+                super.onPostExecute(pokemonList);
+                if(pokemonList != null) {
+                    updatePokemonMapData(pokemonList);
+                    messageBox(getString(R.string.pokemon_title_status_success),
+                            getString(R.string.pokemon_message_status_success) + pokemonList.get(0).getName());
+                }
+                else
+                    messageBox(getString(R.string.pokemon_title_status_fail), getString(R.string.pokemon_message_status_fail));
+            }
 
-        if (problemOccurred)
-            messageBox("findPokemon", "Could not search for pokemon. Please make sure you have internet and restart the app");
-
-        return pokemon;
+        }.execute();
     }
 
     @Override
