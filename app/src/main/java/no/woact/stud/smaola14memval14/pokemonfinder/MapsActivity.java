@@ -53,18 +53,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
         if (android.os.Build.VERSION.SDK_INT > 9) {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
         dbHandler = new DbHandler(this);
         markerList = new ArrayList<>();
         pokemonIdList = new ArrayList<>();
-        downloadAndDisplayData();
+
+        fixSSLIssue();
+
+        downloadAndDisplayPokemons();
     }
 
     public void switchToOverview(View v){
@@ -73,7 +79,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    private void downloadAndDisplayData() {
+    private void downloadAndDisplayPokemons() {
         new AsyncTask<Void, Void, ArrayList<Pokemon>>() {
             @Override
             protected ArrayList<Pokemon> doInBackground(final Void... params) {
@@ -206,40 +212,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Pokemon pokemon = null;
         HttpsURLConnection connection = null;
 
-        // Fix SSL exception, from http://stackoverflow.com/a/24501156
-            /* Start of Fix */
-        TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
-            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
-
-            public void checkClientTrusted(X509Certificate[] certs, String authType) {
-            }
-
-            public void checkServerTrusted(X509Certificate[] certs, String authType) {
-            }
-
-        }};
-
-        SSLContext sc = null;
-        try {
-            sc = SSLContext.getInstance("SSL");
-            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            e.printStackTrace();
-        }
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-        // Create all-trusting host name verifier
-        HostnameVerifier allHostsValid = new HostnameVerifier() {
-            public boolean verify(String hostname, SSLSession session) {
-                return true;
-            }
-        };
-        // Install the all-trusting host verifier
-        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-            /* End of the fix*/
-
         try {
             connection = (HttpsURLConnection) new URL("https://locations.lehmann.tech/pokemon/" + pokemonId).openConnection();
         } catch (IOException e) {
@@ -290,5 +262,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         messageBox.setCancelable(false);
         messageBox.setNeutralButton("OK", null);
         messageBox.show();
+    }
+
+    // Fix SSL exception, from http://stackoverflow.com/a/24501156
+    private void fixSSLIssue() {
+            /* Start of Fix */
+        TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+
+        }};
+
+        SSLContext sc = null;
+        try {
+            sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            e.printStackTrace();
+        }
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+        // Create all-trusting host name verifier
+        HostnameVerifier allHostsValid = new HostnameVerifier() {
+            public boolean verify(String hostname, SSLSession session) {
+                return true;
+            }
+        };
+        // Install the all-trusting host verifier
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+        /* End of the fix*/
     }
 }
