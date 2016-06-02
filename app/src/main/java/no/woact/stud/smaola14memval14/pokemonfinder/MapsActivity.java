@@ -47,6 +47,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private DbHandler dbHandler;
     ArrayList<Marker> markerList;
     ArrayList<String> pokemonIdList;
+    Utils utils;
 
 
     @Override
@@ -66,6 +67,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         dbHandler = new DbHandler(this);
+        utils = new Utils(this);
         markerList = new ArrayList<>();
         pokemonIdList = new ArrayList<>();
 
@@ -99,7 +101,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
 
                 } catch (IOException | JSONException e) {
-                    messageBox("doInBackground", "Could not search for pokemons. Please make sure you have internet and restart the app");
+                    utils.messageBox("doInBackground", "Could not search for pokemons. Please make sure you have internet and restart the app");
                 }
                 return null;
             }
@@ -239,7 +241,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
 
                 if (problemOccurred)
-                    messageBox("findPokemon", "Could not search for pokemon. Please make sure you have internet and restart the app");
+                    utils.messageBox("findPokemon", "Could not search for pokemon. Please make sure you have internet and restart the app");
 
                 return pokemonList;
             }
@@ -249,11 +251,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 super.onPostExecute(pokemonList);
                 if(pokemonList != null) {
                     updatePokemonMapData(pokemonList);
-                    messageBox(getString(R.string.pokemon_title_status_success),
+                    utils.messageBox(getString(R.string.pokemon_title_status_success),
                             getString(R.string.pokemon_message_status_success) + pokemonList.get(0).getName());
                 }
                 else
-                    messageBox(getString(R.string.pokemon_title_status_fail), getString(R.string.pokemon_message_status_fail));
+                    utils.messageBox(getString(R.string.pokemon_title_status_fail), getString(R.string.pokemon_message_status_fail));
             }
 
         }.execute();
@@ -262,21 +264,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-    }
-
-    // Code below from http://stackoverflow.com/a/18143773
-    //*********************************************************
-    //generic dialog, takes in the method name and error message
-    //*********************************************************
-    private void messageBox(String method, String message)
-    {
-
-        AlertDialog.Builder messageBox = new AlertDialog.Builder(this);
-        messageBox.setTitle(method);
-        messageBox.setMessage(message);
-        messageBox.setCancelable(false);
-        messageBox.setNeutralButton("OK", null);
-        messageBox.show();
     }
 
     // Fix SSL exception, from http://stackoverflow.com/a/24501156
@@ -300,7 +287,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             sc = SSLContext.getInstance("SSL");
             sc.init(null, trustAllCerts, new java.security.SecureRandom());
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            messageBox("findPokemon", "Could not connect. Please make sure you have internet and restart the app");
+            utils.messageBox("findPokemon", "Could not connect. Please make sure you have internet and restart the app");
         }
         HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 
