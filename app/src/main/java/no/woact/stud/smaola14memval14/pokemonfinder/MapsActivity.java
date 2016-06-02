@@ -46,6 +46,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private DbHandler dbHandler;
     ArrayList<Marker> markerList;
+    ArrayList<String> pokemonIdList;
 
 
     @Override
@@ -62,6 +63,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
         dbHandler = new DbHandler(this);
         markerList = new ArrayList<>();
+        pokemonIdList = new ArrayList<>();
         downloadAndDisplayData();
     }
 
@@ -84,7 +86,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         case 200:
                         case 201:
                             String jsonString = connectionInputToString(connection);
-                            return jsonArrayToPokemonList(new JSONArray(jsonString));
+                            ArrayList<Pokemon> pokemonList = jsonArrayToPokemonList(new JSONArray(jsonString));
+                            pokemonList.add(new Pokemon("57348c569295781100ae8906", "Pikachu", "Such Test", "", new LatLng(59.91183658, 10.76162338)));
+                            return pokemonList;
                     }
 
                 } catch (IOException | JSONException e) {
@@ -168,8 +172,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             pokemonList.add(new Pokemon(id, name, hint, image, lat));
         }
 
-        pokemonList.add(new Pokemon("57348c569295781100ae8906", "Pikachu", "Such Test", "", new LatLng(59.91183658, 10.76162338)));
-
         return pokemonList;
     }
 
@@ -177,22 +179,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         float green = BitmapDescriptorFactory.HUE_GREEN;
         float red = BitmapDescriptorFactory.HUE_RED;
 
-        for (Pokemon pokemon : pokemonList) {
-            boolean markerExists = false;
+        for (int i = 0; i < pokemonList.size(); i++) {
+            Pokemon pokemon = pokemonList.get(i);
 
-            for(Marker marker : markerList) {
-                if (marker.getPosition() == pokemon.getLocation()) {
-                    markerExists = true;
-                    marker.setIcon(BitmapDescriptorFactory.defaultMarker(green));
-                }
+            if (pokemonIdList.contains(pokemon.getId())) {
+                Marker marker = markerList.get(i);
+                marker.setIcon(BitmapDescriptorFactory.defaultMarker(green));
             }
 
-            if (!markerExists) {
+            else {
                 float color = red;
                 if (dbHandler.pokemonInDb(pokemon.getId())) color = green;
-                markerList.add(mMap.addMarker(new MarkerOptions().position(pokemon.getLocation())
+
+                Marker marker = mMap.addMarker(new MarkerOptions().position(pokemon.getLocation())
                         .title(pokemon.getName()).snippet(pokemon.getHint())
-                        .icon(BitmapDescriptorFactory.defaultMarker(color))));
+                        .icon(BitmapDescriptorFactory.defaultMarker(color)));
+                markerList.add(marker);
+                pokemonIdList.add(pokemon.getId());
 
                 mMap.animateCamera( CameraUpdateFactory.newLatLngZoom(pokemon.getLocation(), 12.0f));
             }
