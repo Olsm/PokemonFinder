@@ -26,12 +26,14 @@ public class PokemonOverview extends AppCompatActivity {
     ListView listViewPokemons;
     ArrayList<Bitmap> imgid;
     ArrayList<String> itemname;
+    Utils utils;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pokemon_overview);
+        utils = new Utils(this);
         db = new DbHandler(this);
         imgid = new ArrayList<>();
         itemname = new ArrayList<>();
@@ -68,11 +70,12 @@ public class PokemonOverview extends AppCompatActivity {
 
     public Bitmap generateImage(String imageUrl){
         try {
-            return BitmapFactory.decodeStream((InputStream)new URL(imageUrl).getContent());
+            Bitmap b  = BitmapFactory.decodeStream((InputStream)new URL(imageUrl).getContent());
+            return b.createScaledBitmap(b, 150,150, true);
         } catch (MalformedURLException m) {
-            new Utils(this).messageBox("URL failure", "Failed to parse URL.");
+            utils.messageBox("URL failure", "Failed to parse URL.");
         } catch (IOException e) {
-            new Utils(this).messageBox("Image failure", "Failed getting image. Check connection");
+            utils.messageBox("Image failure", "Failed getting image. Check connection");
         }
         return null;
 
