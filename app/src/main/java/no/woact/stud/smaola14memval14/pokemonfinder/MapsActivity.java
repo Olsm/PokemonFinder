@@ -109,7 +109,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
 
                 } catch (IOException | JSONException e) {
-                    messageFail(getString(R.string.pokemon_search_error) + "." + getString(R.string.internet_check_reminder));
+                    return null;
                 }
                 return null;
             }
@@ -117,7 +117,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             protected void onPostExecute(final ArrayList<Pokemon> pokemonList) {
                 super.onPostExecute(pokemonList);
-                updatePokemonMapData(pokemonList);
+                if (pokemonList != null)
+                    updatePokemonMapData(pokemonList);
+                else
+                    messageFail(getString(R.string.pokemon_search_error) + "." + getString(R.string.internet_check_reminder));
             }
         }.execute();
     }
@@ -138,7 +141,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String pokemonId;
 
                 pokemonId = pokemonInput.getText().toString();
-                findPokemon(pokemonId);
+                if (!pokemonId.isEmpty()) findPokemon(pokemonId);
 
             }
         });
@@ -216,18 +219,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void findPokemon(final String pokemonId) {
-        new AsyncTask<Void, Void, ArrayList<Pokemon>>() {
+        new AsyncTask<Void, Void, Object[]>() {
             @Override
-            protected ArrayList<Pokemon> doInBackground(final Void... params) {
-                boolean problemOccurred = false;
-                HttpsURLConnection connection = null;
+            protected Object[] doInBackground(final Void... params) {
+                HttpsURLConnection connection;
                 ArrayList<Pokemon> pokemonList = null;
+                boolean success = false;
 
                 try {
                     connection = (HttpsURLConnection) new URL("https://locations.lehmann.tech/pokemon/" + pokemonId).openConnection();
                     connection.setRequestProperty(getString(R.string.x_token_key), getString(R.string.x_token));
                 } catch (IOException e) {
-                    problemOccurred = true;
+                    return new Object[]{pokemonList, success};
                 }
 
                 try {
@@ -237,36 +240,37 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         Pokemon pokemon = pokemonList.get(0);
                         if (!dbHandler.getPokemonsFromDb().contains(pokemon)) {
                             dbHandler.addPokemon(pokemon);
-                            return pokemonList;
                         }
+                        success = true;
                     }
 
                 } catch (IOException | JSONException e) {
-                    int statusCode = 0;
-                    if (connection != null) {
-                        try {
-                            statusCode = connection.getResponseCode();
-                        } catch (IOException e1) {
-                            statusCode = 0;
-                        }
+                    int statusCode;
+                    try {
+                        statusCode = connection.getResponseCode();
+                    } catch (IOException e1) {
+                        statusCode = 0;
                     }
-                    if (statusCode != 420) problemOccurred = true;
+                    if (statusCode == 420) success = true;
                 }
 
-                if (problemOccurred)
-                    messageFail(getString(R.string.pokemon_search_error) + "." + getString(R.string.internet_check_reminder));
-
-                return pokemonList;
+                return new Object[]{pokemonList, success};
             }
 
             @Override
-            protected void onPostExecute(final ArrayList<Pokemon> pokemonList) {
-                super.onPostExecute(pokemonList);
-                if (pokemonList != null) {
+            protected void onPostExecute(final Object[] result) {
+                super.onPostExecute(result);
+                ArrayList<Pokemon> pokemonList = (ArrayList<Pokemon>) result[0];
+                boolean success = (boolean) result[1];
+
+                if (success && pokemonList != null) {
                     updatePokemonMapData(pokemonList);
                     messageSuccess(getString(R.string.pokemon_message_status_success) + " " + pokemonList.get(0).getName());
-                } else
+                } else if (success) {
                     messageFail(getString(R.string.pokemon_message_status_fail));
+                } else {
+                    messageFail(getString(R.string.pokemon_search_error) + "." + getString(R.string.internet_check_reminder));
+                }
             }
 
         }.execute();
