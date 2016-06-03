@@ -1,9 +1,14 @@
 package no.woact.stud.smaola14memval14.pokemonfinder;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.StrictMode;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -79,7 +84,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         downloadAndDisplayPokemons();
     }
 
-    public void switchToOverview(View v){
+    public void switchToOverview(View v) {
         Intent intent = new Intent(this, PokemonOverview.class);
         startActivity(intent);
     }
@@ -96,9 +101,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     switch (statusCode) {
                         case 200:
-                        case 201:
                             String jsonString = connectionInputToString(connection);
                             ArrayList<Pokemon> pokemonList = jsonArrayToPokemonList(new JSONArray(jsonString));
+                            // TODO: Remove test object (Pikachu) before release
                             pokemonList.add(new Pokemon("57348c569295781100ae8906", "Pikachu", "Such Test", "", new LatLng(59.91183658, 10.76162338)));
                             return pokemonList;
                     }
@@ -117,7 +122,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }.execute();
     }
 
-    public void catchPokemonDialog(View v){
+    public void catchPokemonDialog(View v) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(getString(R.string.catch_pokemon_title));
@@ -177,7 +182,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng lat = null;
             if (pokemon.has("hint")) hint = pokemon.getString("hint");
             if (pokemon.has("imageUrl")) image = pokemon.getString("imageUrl");
-            if (pokemon.has("lat")) lat = new LatLng(pokemon.getDouble("lat"), pokemon.getDouble("lng"));
+            if (pokemon.has("lat"))
+                lat = new LatLng(pokemon.getDouble("lat"), pokemon.getDouble("lng"));
             pokemonList.add(new Pokemon(id, name, hint, image, lat));
         }
 
@@ -194,9 +200,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (pokemonIdList.contains(pokemon.getId())) {
                 Marker marker = markerList.get(pokemonIdList.indexOf(pokemon.getId()));
                 marker.setIcon(BitmapDescriptorFactory.defaultMarker(green));
-            }
-
-            else if (pokemon.getLocation() != null) {
+            } else if (pokemon.getLocation() != null) {
                 float color = red;
                 if (dbHandler.pokemonInDb(pokemon.getId())) color = green;
 
@@ -206,7 +210,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 markerList.add(marker);
                 pokemonIdList.add(pokemon.getId());
 
-                mMap.animateCamera( CameraUpdateFactory.newLatLngZoom(pokemon.getLocation(), 12.0f));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pokemon.getLocation(), 12.0f));
             }
         }
     }
@@ -240,8 +244,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 } catch (IOException | JSONException e) {
                     int statusCode = 0;
                     if (connection != null) {
-                        try {statusCode = connection.getResponseCode();}
-                        catch (IOException e1) {statusCode = 0;}
+                        try {
+                            statusCode = connection.getResponseCode();
+                        } catch (IOException e1) {
+                            statusCode = 0;
+                        }
                     }
                     if (statusCode != 420) problemOccurred = true;
                 }
@@ -255,11 +262,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             protected void onPostExecute(final ArrayList<Pokemon> pokemonList) {
                 super.onPostExecute(pokemonList);
-                if(pokemonList != null) {
+                if (pokemonList != null) {
                     updatePokemonMapData(pokemonList);
                     messageSuccess(getString(R.string.pokemon_message_status_success) + " " + pokemonList.get(0).getName());
-                }
-                else
+                } else
                     messageFail(getString(R.string.pokemon_message_status_fail));
             }
 
@@ -269,6 +275,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            return;
+        }
+        mMap.setMyLocationEnabled(true);
+
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+            messageBox("Enable GPS", "Please enable location services to see your location");
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 1: {
+                if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                    mMap.setMyLocationEnabled(true);
+                else {
+                    messageFail("Permission deny to access GPS data");
+                }
+            }
+        }
     }
 
     // Fix SSL exception, from http://stackoverflow.com/a/24501156
@@ -298,16 +327,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void messageFail(String message) {
-        messageBox(message, false);
+        messageBox(getString(R.string.title_status_fail), message);
     }
 
     private void messageSuccess(String message) {
-        messageBox(message, true);
+        messageBox(getString(R.string.title_status_success), message);
     }
 
-    private void messageBox(String message, boolean success) {
-        String title = getString(R.string.title_status_fail);
-        if (success) title = getString(R.string.title_status_success);
+    private void messageBox(String title, String message) {
         utils.messageBox(title, message);
     }
 }
