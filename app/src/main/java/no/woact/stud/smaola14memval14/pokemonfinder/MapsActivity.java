@@ -256,7 +256,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 super.onPostExecute(pokemonList);
                 if(pokemonList != null) {
                     updatePokemonMapData(pokemonList);
-                    messageSuccess(getString(R.string.pokemon_message_status_success) + pokemonList.get(0).getName());
+                    messageSuccess(getString(R.string.pokemon_message_status_success) + " " + pokemonList.get(0).getName());
                 }
                 else
                     messageFail(getString(R.string.pokemon_message_status_fail));
