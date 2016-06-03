@@ -1,5 +1,7 @@
 package no.woact.stud.smaola14memval14.pokemonfinder;
 
+import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -10,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
+import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.IOException;
@@ -21,7 +24,6 @@ import java.util.ArrayList;
 public class PokemonOverview extends AppCompatActivity {
     DbHandler db;
     ListView listViewPokemons;
-    ArrayList<String> listPokemons;
     ArrayList<Bitmap> imgid;
     ArrayList<String> itemname;
 
@@ -31,42 +33,38 @@ public class PokemonOverview extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pokemon_overview);
         db = new DbHandler(this);
-        appendImagesForList();
-
-    }
-
-    public void appendImagesForList(){
-        new AsyncTask<Void, Void, ArrayList<Bitmap>>(){
-            @Override
-            protected ArrayList<Bitmap> doInBackground(Void... params) {
-                ArrayList<Bitmap> imageCollection = new ArrayList<>();
-                for(Pokemon pokemon : db.getPokemonsFromDb()){
-                    imageCollection.add(generateImage(pokemon.getImage()));
-                }
-                return imageCollection;
-            }
-
-            @Override
-            protected void onPostExecute(ArrayList<Bitmap> bitmaps) {
-                super.onPostExecute(bitmaps);
-                showPokemonList(bitmaps);
-            }
-        }.execute();
-    }
-
-    public void showPokemonList(ArrayList<Bitmap> bitmaps){
         imgid = new ArrayList<>();
-        imgid = bitmaps;
         itemname = new ArrayList<>();
-        listPokemons = new ArrayList<>();
-        for(Pokemon pokemon : db.getPokemonsFromDb()){
-            listPokemons.add("Pokemon: " + pokemon.getName() + pokemon.getImage());
-            itemname.add(pokemon.getName());
-        }
-        CustomListAdapter cAdapter = new CustomListAdapter(this, itemname, imgid );
-        listViewPokemons = (ListView) findViewById(R.id.listPokemons);
-        listViewPokemons.setAdapter(cAdapter);
+        showPokemonListView();
+
     }
+
+    public void showPokemonListView(){
+        new AsyncTask<Activity, Void, CustomListAdapter>(){
+            @Override
+            protected CustomListAdapter doInBackground(Activity... params) {
+
+                for(Pokemon pokemon : db.getPokemonsFromDb()){
+                    if(!itemname.contains(pokemon.getName())){
+                        imgid.add(generateImage(pokemon.getImage()));
+                        itemname.add(pokemon.getName());
+                    }
+
+                }
+                return new CustomListAdapter(params[0], itemname, imgid );
+
+            }
+
+
+            @Override
+            protected void onPostExecute(CustomListAdapter cAdapter) {
+                super.onPostExecute(cAdapter);
+                listViewPokemons = (ListView) findViewById(R.id.listPokemons);
+                listViewPokemons.setAdapter(cAdapter);
+            }
+        }.execute(this);
+    }
+
 
     public Bitmap generateImage(String imageUrl){
         try {
