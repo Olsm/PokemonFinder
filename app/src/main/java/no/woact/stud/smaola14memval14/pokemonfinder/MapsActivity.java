@@ -71,6 +71,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         markerList = new ArrayList<>();
         pokemonIdList = new ArrayList<>();
 
+        // TODO: Remove before release!
         dbHandler.onUpgrade(dbHandler.getWritableDatabase(), 0, 0);
 
         fixSSLIssue();
