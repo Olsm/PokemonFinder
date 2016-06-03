@@ -71,6 +71,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         markerList = new ArrayList<>();
         pokemonIdList = new ArrayList<>();
 
+        dbHandler.onUpgrade(dbHandler.getWritableDatabase(), 0, 0);
+
         fixSSLIssue();
 
         downloadAndDisplayPokemons();
@@ -101,7 +103,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
 
                 } catch (IOException | JSONException e) {
-                    utils.messageBox("doInBackground", "Could not search for pokemons. Please make sure you have internet and restart the app");
+                    messageFail(getString(R.string.pokemon_search_error) + "." + getString(R.string.internet_check_reminder));
                 }
                 return null;
             }
@@ -117,7 +119,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void catchPokemonDialog(View v){
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Find Pokemon!");
+        builder.setTitle(getString(R.string.catch_pokemon_title));
 
         final EditText pokemonInput = new EditText(this);
 
@@ -127,7 +129,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         builder.setPositiveButton("Find", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String pokemonId = "";
+                String pokemonId;
 
                 pokemonId = pokemonInput.getText().toString();
                 findPokemon(pokemonId);
@@ -150,7 +152,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String line;
 
         while ((line = br.readLine()) != null) {
-            sb.append(line+"\n");
+            sb.append(line);
+            sb.append("\n");
         }
         br.close();
 
@@ -217,7 +220,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 try {
                     connection = (HttpsURLConnection) new URL("https://locations.lehmann.tech/pokemon/" + pokemonId).openConnection();
-                    connection.setRequestProperty("X-Token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.InN1Y2hQb2tlbW9uSHVudGVycyI.KR0umr4FhH9AWG9DqASSqnT68MkTnfkKYyW0hxyCTFM");
+                    connection.setRequestProperty(getString(R.string.x_token_key), getString(R.string.x_token));
                 } catch (IOException e) {
                     problemOccurred = true;
                 }
@@ -234,14 +237,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
 
                 } catch (IOException | JSONException e) {
-                    int statusCode;
-                    try {statusCode = connection.getResponseCode();}
-                    catch (IOException e1) {statusCode = 0;}
+                    int statusCode = 0;
+                    if (connection != null) {
+                        try {statusCode = connection.getResponseCode();}
+                        catch (IOException e1) {statusCode = 0;}
+                    }
                     if (statusCode != 420) problemOccurred = true;
                 }
 
                 if (problemOccurred)
-                    utils.messageBox("findPokemon", "Could not search for pokemon. Please make sure you have internet and restart the app");
+                    messageFail(getString(R.string.pokemon_search_error) + "." + getString(R.string.internet_check_reminder));
 
                 return pokemonList;
             }
@@ -251,11 +256,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 super.onPostExecute(pokemonList);
                 if(pokemonList != null) {
                     updatePokemonMapData(pokemonList);
-                    utils.messageBox(getString(R.string.pokemon_title_status_success),
-                            getString(R.string.pokemon_message_status_success) + pokemonList.get(0).getName());
+                    messageSuccess(getString(R.string.pokemon_message_status_success) + pokemonList.get(0).getName());
                 }
                 else
-                    utils.messageBox(getString(R.string.pokemon_title_status_fail), getString(R.string.pokemon_message_status_fail));
+                    messageFail(getString(R.string.pokemon_message_status_fail));
             }
 
         }.execute();
@@ -268,37 +272,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     // Fix SSL exception, from http://stackoverflow.com/a/24501156
     private void fixSSLIssue() {
-            /* Start of Fix */
         TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
-            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
-
-            public void checkClientTrusted(X509Certificate[] certs, String authType) {
-            }
-
-            public void checkServerTrusted(X509Certificate[] certs, String authType) {
-            }
-
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {return null;}
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {}
         }};
 
-        SSLContext sc = null;
+        SSLContext sc;
         try {
             sc = SSLContext.getInstance("SSL");
             sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            utils.messageBox("findPokemon", "Could not connect. Please make sure you have internet and restart the app");
+            messageFail(getString(R.string.connect_error) + "." + getString(R.string.internet_check_reminder));
         }
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 
         // Create all-trusting host name verifier
         HostnameVerifier allHostsValid = new HostnameVerifier() {
-            public boolean verify(String hostname, SSLSession session) {
-                return true;
-            }
+            public boolean verify(String hostname, SSLSession session) {return true;}
         };
+
         // Install the all-trusting host verifier
         HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-        /* End of the fix*/
+    }
+
+    private void messageFail(String message) {
+        messageBox(message, false);
+    }
+
+    private void messageSuccess(String message) {
+        messageBox(message, true);
+    }
+
+    private void messageBox(String message, boolean success) {
+        String title = getString(R.string.title_status_fail);
+        if (success) title = getString(R.string.title_status_success);
+        utils.messageBox(title, message);
     }
 }

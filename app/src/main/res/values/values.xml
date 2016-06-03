@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="x_token">eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.InN1Y2hQb2tlbW9uSHVudGVycyI.KR0umr4FhH9AWG9DqASSqnT68MkTnfkKYyW0hxyCTFM</string>
+    <string name="x_token_key">X-Token</string>
+</resources>
