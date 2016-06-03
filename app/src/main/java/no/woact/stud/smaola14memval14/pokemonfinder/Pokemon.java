@@ -41,14 +41,6 @@ public class Pokemon {
         return this.location;
     }
 
-    public boolean getCaptured(){
-        return this.captured;
-    }
-
-    public void setCaptured(boolean captured){
-        this.captured = captured;
-    }
-
 
     @Override
     public String toString() {
@@ -57,7 +49,6 @@ public class Pokemon {
                 ", name='" + name + '\'' +
                 ", hint='" + hint + '\'' +
                 ", location=" + location +
-                ", captured=" + captured +
                 " image="   + image + '}';
     }
 

@@ -21,7 +21,6 @@ public class DbHandler extends SQLiteOpenHelper {
     public static final String KEY_POKEMON_ID = "POKEMON_ID";
     public static final String KEY_NAME = "NAME";
     public static final String KEY_IMAGE = "IMAGE";
-    public static final String KEY_CAPTURED = "CAPTURED";
 
     private SQLiteDatabase db;
 
@@ -52,8 +51,7 @@ public class DbHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db){
         db.execSQL("CREATE table " + TABLE_NAME + " (" +KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                KEY_POKEMON_ID+ " TEXT, " + KEY_NAME + " TEXT, " + KEY_IMAGE + " TEXT, " +
-                KEY_CAPTURED + " INTEGER)");
+                KEY_POKEMON_ID+ " TEXT, " + KEY_NAME + " TEXT, " + KEY_IMAGE + " TEXT)");
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -67,7 +65,6 @@ public class DbHandler extends SQLiteOpenHelper {
         values.put(KEY_POKEMON_ID, pokemon.getId());
         values.put(KEY_NAME, pokemon.getName());
         values.put(KEY_IMAGE, pokemon.getImage());
-        values.put(KEY_CAPTURED, pokemon.getCaptured());
         db.insert(TABLE_NAME, null, values);
     }
 
