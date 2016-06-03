@@ -6,9 +6,8 @@
     <string name="pokemon_title_status_success">Success!</string>
     <string name="pokemon_message_status_fail">The pokemon id you entered was not found.</string>
     <string name="pokemon_message_status_success">You successfully catched </string>
-
-
-
+    <string name="catch_pokemon">Catch Pokemon</string>
+    <string name="pokemon_collection">Pokemon Collection</string>
 
 
 </resources>

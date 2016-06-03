@@ -5,7 +5,6 @@
     android:id="@+id/layoutMain">
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:map="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -20,12 +19,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:id="@+id/layoutButtons">
+        android:id="@+id/layoutButtons"
+        android:weightSum="2">
 
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Find Pokemon"
+            android:text="@string/catch_pokemon"
             android:id="@+id/btnFindPokemon"
             android:layout_gravity="left"
             android:layout_weight="1"
@@ -35,9 +35,9 @@
             android:onClick="catchPokemonDialog" />
 
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pokemon List"
+            android:text="@string/pokemon_collection"
             android:id="@+id/btnPokemonList"
             android:layout_gravity="right"
             android:layout_weight="1"
