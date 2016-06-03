@@ -21,7 +21,6 @@ import java.util.ArrayList;
 public class PokemonOverview extends AppCompatActivity {
     DbHandler db;
     ListView listViewPokemons;
-    ListAdapter adapter;
     ArrayList<String> listPokemons;
     ArrayList<Bitmap> imgid;
     ArrayList<String> itemname;
@@ -32,12 +31,11 @@ public class PokemonOverview extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pokemon_overview);
         db = new DbHandler(this);
-
-        collectImages();
+        appendImagesForList();
 
     }
 
-    public void collectImages(){
+    public void appendImagesForList(){
         new AsyncTask<Void, Void, ArrayList<Bitmap>>(){
             @Override
             protected ArrayList<Bitmap> doInBackground(Void... params) {
