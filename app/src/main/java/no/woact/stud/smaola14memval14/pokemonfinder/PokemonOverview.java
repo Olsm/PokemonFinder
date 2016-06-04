@@ -42,42 +42,50 @@ public class PokemonOverview extends AppCompatActivity {
     }
 
     public void showPokemonListView(){
-        new AsyncTask<Activity, Void, CustomListAdapter>(){
+        new AsyncTask<Activity, Void, Object[]>(){
             @Override
-            protected CustomListAdapter doInBackground(Activity... params) {
+            protected Object[] doInBackground(Activity... params) {
+                boolean success = false;
 
                 for(Pokemon pokemon : db.getPokemonsFromDb()){
                     if(!itemname.contains(pokemon.getName())){
-                        imgid.add(generateImage(pokemon.getImage()));
+                        try{
+                            imgid.add(generateImage(pokemon.getImage()));
+                        }
+                        catch (IOException i){
+                            return new Object[] {new CustomListAdapter(params[0], itemname, imgid), success};
+                        }
                         itemname.add(pokemon.getName());
                     }
 
                 }
-                return new CustomListAdapter(params[0], itemname, imgid );
+                success = true;
+
+                return new Object[]{new CustomListAdapter(params[0], itemname, imgid ), success};
 
             }
 
 
             @Override
-            protected void onPostExecute(CustomListAdapter cAdapter) {
-                super.onPostExecute(cAdapter);
-                listViewPokemons = (ListView) findViewById(R.id.listPokemons);
-                listViewPokemons.setAdapter(cAdapter);
+            protected void onPostExecute(Object[] result) {
+                super.onPostExecute(result);
+                boolean success = (boolean) result[1];
+                if(success){
+                    listViewPokemons = (ListView) findViewById(R.id.listPokemons);
+                    listViewPokemons.setAdapter((CustomListAdapter)result[0]);
+                }
+                else
+                    utils.messageBox(getString(R.string.connect_error), getString(R.string.internet_check_reminder));
+
             }
         }.execute(this);
     }
 
 
-    public Bitmap generateImage(String imageUrl){
-        try {
-            Bitmap b  = BitmapFactory.decodeStream((InputStream)new URL(imageUrl).getContent());
-            return b.createScaledBitmap(b, 150,150, true);
-        } catch (MalformedURLException m) {
-            utils.messageBox("URL failure", "Failed to parse URL.");
-        } catch (IOException e) {
-            utils.messageBox("Image failure", "Failed getting image. Check connection");
-        }
-        return null;
+    public Bitmap generateImage(String imageUrl) throws IOException{
+        Bitmap b  = BitmapFactory.decodeStream((InputStream)new URL(imageUrl).getContent());
+        return Bitmap.createScaledBitmap(b, 150,150, true);
+
 
     }
 }
