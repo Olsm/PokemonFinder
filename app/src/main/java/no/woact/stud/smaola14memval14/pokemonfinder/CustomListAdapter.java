@@ -14,27 +14,25 @@ import java.util.ArrayList;
 public class CustomListAdapter extends ArrayAdapter<String> {
 
     private final Activity context;
-    private final ArrayList<String> itemname;
-    private final ArrayList<Bitmap> imgid;
+    private final ArrayList<String> itemName;
+    private final ArrayList<Bitmap> image;
 
-    public CustomListAdapter(Activity context, ArrayList<String> itemname, ArrayList<Bitmap> imgid) {
-        super(context, R.layout.mylist, itemname);
-        // TODO Auto-generated constructor stub
-
+    public CustomListAdapter(Activity context, ArrayList<String> itemName, ArrayList<Bitmap> image) {
+        super(context, R.layout.mylist, itemName);
         this.context=context;
-        this.itemname=itemname;
-        this.imgid=imgid;
+        this.itemName = itemName;
+        this.image = image;
     }
 
     public View getView(int position,View view,ViewGroup parent) {
         LayoutInflater inflater=context.getLayoutInflater();
-        View rowView=inflater.inflate(R.layout.mylist, null,true);
+        View rowView=inflater.inflate(R.layout.mylist,null,true);
 
         TextView txtTitle = (TextView) rowView.findViewById(R.id.item);
         ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
 
-        txtTitle.setText(itemname.get(position));
-        imageView.setImageBitmap(imgid.get(position));
+        txtTitle.setText(itemName.get(position));
+        imageView.setImageBitmap(image.get(position));
         return rowView;
 
     }
