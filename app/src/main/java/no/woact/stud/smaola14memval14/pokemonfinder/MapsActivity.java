@@ -60,12 +60,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        // TODO: Remove this!!!
-        if (android.os.Build.VERSION.SDK_INT > 9) {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-        }
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -75,9 +69,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         utils = new Utils(this);
         markerList = new ArrayList<>();
         pokemonIdList = new ArrayList<>();
-
-        // TODO: Remove before release!
-        dbHandler.onUpgrade(dbHandler.getWritableDatabase(), 0, 0);
 
         fixSSLIssue();
 
@@ -102,10 +93,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     switch (statusCode) {
                         case 200:
                             String jsonString = connectionInputToString(connection);
-                            ArrayList<Pokemon> pokemonList = jsonArrayToPokemonList(new JSONArray(jsonString));
-                            // TODO: Remove test object (Pikachu) before release
-                            pokemonList.add(new Pokemon("57348c569295781100ae8906", "Pikachu", "Such Test", "", new LatLng(59.91183658, 10.76162338)));
-                            return pokemonList;
+                            return jsonArrayToPokemonList(new JSONArray(jsonString));
                     }
 
                 } catch (IOException | JSONException e) {
