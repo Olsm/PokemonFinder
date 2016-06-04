@@ -6,13 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.google.android.gms.maps.model.LatLng;
-
 import java.util.ArrayList;
 
-/**
- * Created by Valmir on 31.05.2016.
- */
 public class DbHandler extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "Pokemons.db";
     public static final String TABLE_NAME = "pokemon_table";

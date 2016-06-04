@@ -11,9 +11,6 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-/**
- * Created by Valmir on 02.06.2016.
- */
 public class CustomListAdapter extends ArrayAdapter<String> {
 
     private final Activity context;
@@ -40,5 +37,5 @@ public class CustomListAdapter extends ArrayAdapter<String> {
         imageView.setImageBitmap(imgid.get(position));
         return rowView;
 
-    };
+    }
 }

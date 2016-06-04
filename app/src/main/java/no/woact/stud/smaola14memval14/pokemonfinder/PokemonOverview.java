@@ -1,23 +1,15 @@
 package no.woact.stud.smaola14memval14.pokemonfinder;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
-import android.widget.ListAdapter;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.ListView;
-
-import com.google.android.gms.location.ActivityRecognition;
-import com.google.android.gms.maps.model.LatLng;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
