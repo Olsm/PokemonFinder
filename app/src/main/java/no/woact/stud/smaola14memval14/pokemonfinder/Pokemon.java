@@ -8,7 +8,6 @@ public class Pokemon {
     private String hint;
     private String image;
     private LatLng location;
-    private boolean captured;
 
     //Constructor
     public Pokemon(String id, String name, String hint, String image,  LatLng location){
@@ -17,7 +16,6 @@ public class Pokemon {
         this.hint = hint;
         this.image = image;
         this.location = location;
-        this.captured = false;
     }
 
     //Get methods
